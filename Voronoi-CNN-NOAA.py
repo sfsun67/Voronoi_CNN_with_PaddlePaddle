@@ -13,14 +13,28 @@
 # The code is written for educational clarity and not for speed.
 # -- version 1: Mar 13, 2021
 
-from keras.layers import Input, Add, Dense, Conv2D, merge, Conv2DTranspose, MaxPooling2D, UpSampling2D, Flatten, Reshape, LSTM
-from keras.models import Model
-from keras import backend as K
+from tensorflow.python.keras.layers import Input
+from tensorflow.python.keras.layers import Add
+from tensorflow.python.keras.layers import Dense
+from tensorflow.python.keras.layers import Conv2D
+from tensorflow.python.keras.layers import merge
+from tensorflow.python.keras.layers import Conv2DTranspose
+from tensorflow.python.keras.layers import MaxPooling2D
+from tensorflow.python.keras.layers import UpSampling2D
+from tensorflow.python.keras.layers import Flatten
+from tensorflow.python.keras.layers import Reshape
+from tensorflow.python.keras.layers import LSTM
+
+
+
+
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras import backend as K
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm as tqdm
 import cv2
 import numpy as np
@@ -30,17 +44,19 @@ from scipy.spatial import Voronoi
 import math
 from scipy.interpolate import griddata
 
-
 import tensorflow as tf
-from keras.backend import tensorflow_backend
-config = tf.ConfigProto(
-    gpu_options=tf.GPUOptions(
+#from tensorflow.python.keras.backend import tensorflow_backend
+from tensorflow.python.keras.backend import set_session
+config = tf.compat.v1.ConfigProto(
+    gpu_options=tf.compat.v1.GPUOptions(
         allow_growth=True,
         visible_device_list="0"
     )
 )
-session = tf.Session(config=config)
-tensorflow_backend.set_session(session)
+session = tf.compat.v1.Session(config=config)
+#tensorflow_backend.set_session(session)
+set_session(session)
+
 
 
 import h5py
@@ -49,7 +65,7 @@ import numpy as np
 
 
 
-f = h5py.File('./sst_weekly.mat','r') # can be downloaded from https://drive.google.com/drive/folders/1pVW4epkeHkT2WHZB7Dym5IURcfOP4cXu?usp=sharing
+f = h5py.File('pallde/Voronoi-CNN-main/sst_weekly.mat','r') # can be downloaded from https://drive.google.com/drive/folders/1pVW4epkeHkT2WHZB7Dym5IURcfOP4cXu?usp=sharing
 lat = np.array(f['lat'])
 lon = np.array(f['lon'])
 sst = np.array(f['sst'])
@@ -69,7 +85,7 @@ sst_reshape = sst[0,:].reshape(len(lat[0,:]),len(lon[0,:]),order='F')
 x_ref, y_ref = np.meshgrid(lon,lat)
 xv1, yv1 =np.meshgrid(lon[0,:],lat[0,:])
 
-for ki in tqdm(range(sen_num_kind)):
+for ki in tqdm(range(sen_num_kind)):   #盲猜，这块做的是数据的预处理
     sen_num = sen_num_kind_list[ki]
     
     X_va = np.zeros((1040*sen_num_var,len(lat[0,:]),len(lon[0,:]),2))
@@ -136,7 +152,7 @@ model = Model(input_img, x_final)
 model.compile(optimizer='adam', loss='mse')
 
 
-from keras.callbacks import ModelCheckpoint,EarlyStopping
+from tensorflow.python.keras.callbacks import ModelCheckpoint,EarlyStopping
 X_train, X_test, y_train, y_test = train_test_split(X_ki, y_ki, test_size=0.3, random_state=None)
 model_cb=ModelCheckpoint('./Model_NOAA.hdf5', monitor='val_loss',save_best_only=True,verbose=1)
 early_cb=EarlyStopping(monitor='val_loss', patience=100,verbose=1)
