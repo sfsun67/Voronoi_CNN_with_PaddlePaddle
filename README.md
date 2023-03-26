@@ -346,4 +346,4 @@ save_best_model=True) | 早停法 |
     
     TensorFlow 官方给出的说法是，model.predict() 这个方法适用于大批量的数据，而model(data, training=False) 这个方法没有特别说明。实验数据表明，两个方法的计算结果是一致的。
     
-    ![Screenshot 2023-03-26 at 22.30.43.png](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Screenshot_2023-03-26_at_22.30.43.png)
+![](https://ai-studio-static-online.cdn.bcebos.com/96fba384daa648909f2bfacd963d8d21a8b0dda196bb4366b4a631ea34e499cd)
