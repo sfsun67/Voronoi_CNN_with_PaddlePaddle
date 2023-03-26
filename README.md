@@ -139,7 +139,7 @@ Github: [https://github.com/sfsun67/Voronoi_CNN_with_PaddlePaddle](https://githu
 
 选择进入终端：
 
-![](https://ai-studio-static-online.cdn.bcebos.com/8f8fca1fc82741d1b56aad66353fbd74aa1c498727ff4499bd6c46e6e5b91f31)
+![](https://ai-studio-static-online.cdn.bcebos.com/dd2b09cb0dde4cf682bfc78fbe90eee6c4066a15d1714f4790e0d101a74e4908)
 
 单卡训练：
 
@@ -243,14 +243,7 @@ step 1/1 [==============================] - loss: 0.1715 - acc: 0.0536 - 13ms/st
 | epochs | 5000 |  |
 | optimizer | Adam | epsilon=1e-07，与 TensorFlow 模型一致 |
 | criterion | MSELoss | 损失函数 |
-| EarlyStopping | callbacks.EarlyStopping(
-'val_loss',
-mode='min',
-patience=100,
-verbose=1,
-min_delta=0,
-baseline=None,
-save_best_model=True) | 早停法 |
+| EarlyStopping | callbacks.EarlyStopping('val_loss',mode='min',patience=100,verbose=1,min_delta=0,baseline=None,save_best_model=True) | 早停法 |
 
 # **七、模型信息**
 
