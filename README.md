@@ -25,7 +25,7 @@
 
 下图描述了数据驱动的空间场恢复技术的具体应用，该技术是使用Voronoi嵌入重建二维圆柱尾流。Voronoi 细分是一种数学方法，它根据点或传感器的距离将空间划分为多个区域。在这种情况下，Voronoi 图像由 8 个传感器构成，这些传感器稀疏地位于尾流周围。 然后，Voronoi 图像被输入卷积神经网络 (CNN) 中。在这种情况下，图像的网格带有传感器（由蓝色圆圈表示），其值为 1，而所有其他区域的值均为 0。这样可以确保CNN仅处理传感器周围的区域，从而降低了重建的计算成本。
 
-![Screenshot 2023-03-26 at 23.41.31.png](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Screenshot_2023-03-26_at_23.41.31.png)
+![](https://ai-studio-static-online.cdn.bcebos.com/f38000e7bfc9429a83363e8ea465c4042742c3f8a2e2476784b379b3b6e65fb3)
 
 ### **1.3 预测结果与解释**
 
@@ -39,7 +39,7 @@
 
 结果表明，本文所提出的深度学习技术可以准确、详细地重建近尾和远尾的涡旋和剪切层。由于传感器数量少，nsensor = 8 的涡度场显示了一些低级重建误差。当 nsensor 加倍到 16 时，通过精确恢复全局流场，重建中的误差将减少一半。此外，在 nsensor = 16 时，只需使用 50 个训练快照即可实现合理的数据恢复。
 
-![Screenshot 2023-03-26 at 23.41.55.png](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Screenshot_2023-03-26_at_23.41.55.png)
+![](https://ai-studio-static-online.cdn.bcebos.com/fe1806a966d74e50a6ddf977ddde6c61f860c9d29c5b4f16b3594da5dae09774)
 
 **NOAA海面温度（地球物理数据）：**
 
@@ -47,15 +47,14 @@
 
 结果表明，即使传感器发生位移，该技术也能成功地重建全局场，突显了掩模图像中保存传感器位置信息的有效利用。即使不可见的传感器数量达到 200，该技术也能在 L2 误差小于 0.1 的情况下实现合理的估计。这表明，对于传感器的数量和传感器放置位置差异很大的数据集，该方法是可靠的。
 
-![Screenshot 2023-03-26 at 23.52.14.png](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Screenshot_2023-03-26_at_23.52.14.png)
-
-![Screenshot 2023-03-26 at 23.52.26.png](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Screenshot_2023-03-26_at_23.52.26.png)
+![](https://ai-studio-static-online.cdn.bcebos.com/801208a107e243cc96ddb084cead8981e47d085f9cd94db1b0ec09aab92523e1)
+![](https://ai-studio-static-online.cdn.bcebos.com/9a6e1ac2d5a348878de26d7e9fbe705905dae6fcd22b432686bf96ada16ab41b)
 
 **湍流槽道流（三维湍流）：**
 
 对于传感器数量 = {150，200，250}，图5总结了基于Voronoi辅助CNN的湍流槽道流空间数据恢复的性能。相对于场上网格点的数量，这些传感器数量分别为2.44％、3.26％和4.07％。该研究观察到，仅用200个传感器就可以精确地重建出更精细的湍流槽道流特征，这表明测量的稀疏程度非常高。尽管不可见位置（即传感器数量相同但位置不同）的误差水平高于经过训练的传感器放置的误差水平，但可以获得相似的趋势。值得注意的是，传感器数量 = {150，250} 的结果显示了对不可见的传感器数量和位置的合理重建。结果表明，本方法是通过稀疏传感器测量对复杂流场进行全局重构的有力工具。
 
-![Screenshot 2023-03-26 at 23.55.11.png](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Screenshot_2023-03-26_at_23.55.11.png)
+![](https://ai-studio-static-online.cdn.bcebos.com/bfe690fec66a422fae729faf8eb676c24d9ef6551c444c9193b9fe8ccf45789d)
 
 # **二、复现精度**
 
@@ -129,13 +128,12 @@ Github: [https://github.com/sfsun67/Voronoi_CNN_with_PaddlePaddle](https://githu
 
 搜索Voronoi_CNN_with_PaddlePaddle，选择对应的版本，Fork。
 
-![Untitled](%E5%9F%BA%E4%BA%8EVoronoi%E5%B5%8C%E5%85%A5%E8%BE%85%E5%8A%A9%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%9A%84%E7%A8%80%E7%96%8F%E4%BC%A0%E6%84%9F%E5%99%A8%E5%85%A8%E5%B1%80%E5%9C%BA%E9%87%8D%E5%BB%BA%201d429093abf9476a9b353a07af52e084/Untitled.png)
-
+![](https://ai-studio-static-online.cdn.bcebos.com/3ea3e052b5e943dda5c8adcfce681826c367e1c429c64a1d83c9e7563f7a8ada)
 **step2：开始训练**
 
 选择进入终端：
 
-![https://github.com/zbyandmoon/Picture/blob/main/picture_DeepCFD/click_terminal.png?raw=true](https://github.com/zbyandmoon/Picture/blob/main/picture_DeepCFD/click_terminal.png?raw=true)
+![](https://ai-studio-static-online.cdn.bcebos.com/8f8fca1fc82741d1b56aad66353fbd74aa1c498727ff4499bd6c46e6e5b91f31)
 
 单卡训练：
 
