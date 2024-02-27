@@ -22,12 +22,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm as tqdm
-import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from scipy.spatial import Voronoi
-import math
 from scipy.interpolate import griddata   #python插值(scipy.interpolate模块的griddata和Rbf)
 import os
 
@@ -46,7 +44,7 @@ config = tf.compat.v1.ConfigProto(
         visible_device_list="0"
     )
 )
-session = tf.compat.v1.Session(config=config)#config(可选)：辅助配置Session对象所需的参数(限制CPU或GPU使用数目，设置优化参数以及设置日志选项等)。
+session = tf.compat.v1.Session(config=config)    #config(可选)：辅助配置Session对象所需的参数(限制CPU或GPU使用数目，设置优化参数以及设置日志选项等)。
 set_session(session)
 
 # 读取数据
@@ -59,44 +57,45 @@ lon = np.array(f['lon'])        #360*1 single   空间分辨率
 sst = np.array(f['sst'])        #64800*1914 single
 time = np.array(f['time'])      #1914*1 double
 
-sst1 = np.nan_to_num(sst)
-
-sen_num_kind = 5
-sen_num_var = 5
-sen_num_kind_list = [10, 20, 30, 50, 100]  #用于训练的传感器数量:n_{sensor，train}={10，20，30，50，100}，具有5种不同的传感器位置排列，总计25个案例。为每个快照随机提供传感器位置。
-sen_num_var_list = [300, 100, 200, 1, 2]
+snapshot = 128      # 用于训练的快照数量，时间
+sen_num_kind = 5    # 有几种？用于训练的传感器数量 
+sen_num_var = 5     # 有几种？固定时间的随机种子 np.random.seed(sen_num_var_list[va])
+sen_num_kind_list = [10, 20, 30, 50, 100]  # 用于训练的传感器数量:n_{sensor，train}={10，20，30，50，100}，具有5种不同的传感器位置排列，总计25个案例。为每个快照随机提供传感器位置。
+sen_num_var_list = [300, 100, 200, 1, 2]    # 固定时间的随机种子 np.random.seed(sen_num_var_list[va])    感觉取得不好，可以再修改一下。
 
 #这里1040修改为32
-X_ki = np.zeros((128*sen_num_kind*sen_num_var,len(lat[0,:]),len(lon[0,:]),2))  #论文使用训练使用了从1981年到2001年的1040张快照，测试而测试快照是从2001年到2018年拍摄的。
-y_ki = np.zeros((128*sen_num_kind*sen_num_var,len(lat[0,:]),len(lon[0,:]),1))
+X_ki = np.zeros((snapshot*sen_num_kind*sen_num_var,len(lat[0,:]),len(lon[0,:]),2))  #论文使用训练使用了从1981年到2001年的1040张快照，测试而测试快照是从2001年到2018年拍摄的。
+y_ki = np.zeros((snapshot*sen_num_kind*sen_num_var,len(lat[0,:]),len(lon[0,:]),1))
         
-sst_reshape = sst[0,:].reshape(len(lat[0,:]),len(lon[0,:]),order='F')
+sst_reshape = sst[0,:].reshape(len(lat[0,:]),len(lon[0,:]),order='F')    # 仅仅用于判断数据形状，表达为 nan 的位置是不存在传感器的位置。对于 sedi 数据，需要进一步处理 nan 的位置。
 x_ref, y_ref = np.meshgrid(lon,lat)    #np.meshgrid函数 meshgrid函数通常使用在数据的矢量化上。它适用于生成网格型数据,可以接受两个一维数组生成两个二维矩阵,对应两个数组中所有的(x,y)对。 
-# Voronio 嵌入之前的数据集。
 xv1, yv1 =np.meshgrid(lon[0,:],lat[0,:])
 
 print("计算 voronoi 镶嵌")
-# 这个循环是否是voronoi 镶嵌？
-for ki in tqdm(range(sen_num_kind)):   #tqdm是Python进度条库,可以在 Python长循环中添加一个进度提示信息。
+# sen_num_kind*sen_num_var 每一种传感器数量 sen_num_kind 都有指定数量的随机种子。所以，所有的传感器数据都是随机选择的。对应于随机在线/离线传感器。
+for ki in tqdm(range(sen_num_kind)):   #    选择用于训练的传感器数量 ;tqdm是Python进度条库,可以在 Python长循环中添加一个进度提示信息。
     sen_num = sen_num_kind_list[ki]
     
-    X_va = np.zeros((128*sen_num_var,len(lat[0,:]),len(lon[0,:]),2))
-    y_va = np.zeros((128*sen_num_var,len(lat[0,:]),len(lon[0,:]),1))
+    X_va = np.zeros((snapshot*sen_num_var,len(lat[0,:]),len(lon[0,:]),2))    # 训练数据容器
+    y_va = np.zeros((snapshot*sen_num_var,len(lat[0,:]),len(lon[0,:]),1))    # 目标容器
     for va in range(sen_num_var):
         
-        X_t = np.zeros((128,len(lat[0,:]),len(lon[0,:]),2))
-        y_t = np.zeros((128,len(lat[0,:]),len(lon[0,:]),1))
+        X_t = np.zeros((snapshot,len(lat[0,:]),len(lon[0,:]),2))    # 训练数据
+        y_t = np.zeros((snapshot,len(lat[0,:]),len(lon[0,:]),1))    # 目标
         
-        for t in tqdm(range(128)):
-            y_t[t,:,:,0] = np.nan_to_num(sst[t,:].reshape(len(lat[0,:]),len(lon[0,:]),order='F'))
-            np.random.seed(sen_num_var_list[va])
-            sparse_locations_lat = np.random.randint(len(lat[0,:]),size=(sen_num)) # 15 sensors
-            sparse_locations_lon = np.random.randint(len(lon[0,:]),size=(sen_num)) # 15 sensors
+        # 指定 随机选的的传感器数量 和 其随机种子，生成所有快照时间上的训练数据
+        for t in tqdm(range(snapshot)):
+            y_t[t,:,:,0] = np.nan_to_num(sst[t,:].reshape(len(lat[0,:]),len(lon[0,:]),order='F'))   # 全局传感器海温数据：从第一个快照开始取数据。nan 转换为0。
+            np.random.seed(sen_num_var_list[va])                                                    # 固定随机种子
+            sparse_locations_lat = np.random.randint(len(lat[0,:]),size=(sen_num)) # 给出稀疏传感器位置 - 纬度 ， 数量为指定数量sen_num
+            sparse_locations_lon = np.random.randint(len(lon[0,:]),size=(sen_num)) # 给出稀疏传感器位置 - 经度 ， 数量为指定数量sen_num
 
+            # 给出稀疏传感器位置（lat, lon） ， 数量为指定数量sen_num ， （0-180， 0-360）
             sparse_locations = np.zeros((sen_num,2))
             sparse_locations[:,0] = sparse_locations_lat
             sparse_locations[:,1] = sparse_locations_lon
 
+            # 在 sens_num 个传感器上，如果有 nan （表示该位置无传感器），重新选择传感器位置
             for s in range(sen_num):
                 a = sparse_locations[s,0]
                 b = sparse_locations[s,1]
@@ -106,29 +105,35 @@ for ki in tqdm(range(sen_num_kind)):   #tqdm是Python进度条库,可以在 Pyth
                     sparse_locations[s,0] = a
                     sparse_locations[s,1] = b
 
-            sparse_data = np.zeros((sen_num))
+            sparse_data = np.zeros((sen_num))    # 传感器上的数据列表
             for s in range(sen_num):
-                sparse_data[s] = (y_t[t,:,:,0][int(sparse_locations[s,0]),int(sparse_locations[s,1])])
+                sparse_data[s] = (y_t[t,:,:,0][int(sparse_locations[s,0]),int(sparse_locations[s,1])])  # 当前时间的，选择出的传感器的数据，传给 sparse_data
     
-            sparse_locations_ex = np.zeros(sparse_locations.shape)
+            sparse_locations_ex = np.zeros(sparse_locations.shape)    # 将随机生成的传感器列表映射到原始数据的经纬度上，   （-89.5~89.5， 0~360）
             for i in range(sen_num):
                 sparse_locations_ex[i,0] = lat[0,:][int(sparse_locations[i,0])]
                 sparse_locations_ex[i,1] = lon[0,:][int(sparse_locations[i,1])]
-            grid_z0 = griddata(sparse_locations_ex, sparse_data, (yv1, xv1), method='nearest')      #python插值(scipy.interpolate模块的griddata和Rbf)
+
+            # ！！！在全局上，将所有点，按照距离其最近的给出数据点插值，既 Voronio 嵌入 ;yv1 "数组包含点的 y 坐标，"xv1 "数组包含点的 x 坐标。;python插值(scipy.interpolate模块的griddata和Rbf)
+            grid_z0 = griddata(sparse_locations_ex, sparse_data, (yv1, xv1), method='nearest')      
+            # 如果全局中，该位置本来没有传感器，那么置0.    理解为？全局传感器中，有在线传感器的值，其他位置为0。      ？？？意味着，上一步的插值，仅仅插值到了有传感器的位置？   
             for j in range(len(lon[0,:])):
                 for i in range(len(lat[0,:])):
                     if np.isnan(sst_reshape[i,j]) == True:
                         grid_z0[i,j] = 0
-            X_t[t,:,:,0] = grid_z0
-            mask_img = np.zeros(grid_z0.shape)
+            X_t[t,:,:,0] = grid_z0    # 训练数据，所有传感器位置上，有在线的传感器的值。
+
+            # 制作掩码，将指定的随机传感器位置，置1，其他位置置0。
+            mask_img = np.zeros(grid_z0.shape)  
             for i in range(sen_num):
                 mask_img[int(sparse_locations[i,0]),int(sparse_locations[i,1])] = 1
-            X_t[t,:,:,1] = mask_img
+            X_t[t,:,:,1] = mask_img 
+            # 1个随机的训练数据制作完毕！
         
-        X_va[128*va:128*(va+1),:,:,:] = X_t
-        y_va[128*va:128*(va+1),:,:,:] = y_t
-    X_ki[(128*sen_num_var)*ki:(128*sen_num_var)*(ki+1),:,:,:] = X_va
-    y_ki[(128*sen_num_var)*ki:(128*sen_num_var)*(ki+1),:,:,:] = y_va
+        X_va[snapshot*va:snapshot*(va+1),:,:,:] = X_t    # 按照顺序，将使用不同随机种子的数据载入
+        y_va[snapshot*va:snapshot*(va+1),:,:,:] = y_t    # 目标，原始数据
+    X_ki[(snapshot*sen_num_var)*ki:(snapshot*sen_num_var)*(ki+1),:,:,:] = X_va      # 按照顺序，将使用不同传感器数量的数据载入。完成 en_num_kind*sen_num_var 每一种传感器数量 sen_num_kind 都有指定数量的随机种子。
+    y_ki[(snapshot*sen_num_var)*ki:(snapshot*sen_num_var)*(ki+1),:,:,:] = y_va
 #以上的计算没有用到 gpu。运算非常慢。    
 #X_ki,y_ki应该把数据处理成类似于图片一样的东西了。
 
